@@ -1,0 +1,1 @@
+# TidySubject for Thunderbird
