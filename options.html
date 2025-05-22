@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>No EXT Tag - Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+  <h2>Tags to Remove from Subject</h2>
+  <form id="tagForm">
+    <div class="option-group">
+      <input type="checkbox" id="removeExtTag" name="removeExtTag">
+      <label for="removeExtTag">Remove EXT tag</label>
+    </div>
+
+    <div class="option-group">
+      <label for="tags">Enter tags to clean (comma-separated):</label><br>
+      <input type="text" id="tags" size="50" placeholder="[EXT], [Extern], [External] ...">
+    </div>
+
+    <div class="option-group">
+      <input type="checkbox" id="collapsePrefix" name="collapsePrefix">
+      <label for="collapsePrefix">Collapse repeated prefixes</label>
+    </div>
+
+    <div class="option-group">
+      <input type="checkbox" id="overwritePrefix" name="overwritePrefix">
+      <label for="overwritePrefix">Overwrite prefixes</label>
+    </div>
+
+    <button type="submit">Save</button>
+    <p id="status" style="color: green;"></p>
+  </form>
+</body>
+</html>
