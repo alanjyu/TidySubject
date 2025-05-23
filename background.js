@@ -1,3 +1,16 @@
+browser.runtime.onInstalled.addListener(async (details) => {
+  if (details.reason === "install") {
+    // Set default settings
+    await browser.storage.local.set({
+      removeExtTag: true,
+      tags: "EXT, Extern, External",
+      removePrefix: true,
+      prefixOptions: "collapse"
+    });
+  }
+});
+
+
 async function cleanExtTags(subject) {
   const defaultTags = ["EXT", "Extern", "External"]; // default tags with preferred casing
   const result = await browser.storage.local.get("tags");
