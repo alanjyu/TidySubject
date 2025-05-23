@@ -1,15 +1,32 @@
 async function cleanExtTags(subject) {
-  const defaultTags = ["EXT", "EXTERN", "EXTERNAL"];
-  const { userTags } = await browser.storage.local.get("tags");
-  const tagList = userTags || defaultTags;
+  const defaultTags = ["EXT", "Extern", "External"]; // default tags with preferred casing
+  const result = await browser.storage.local.get("tags");
+  const userTagsRaw = result.tags || "";
 
-  const pattern = tagList
+  // Parse user tags from comma-separated string, trim whitespace, filter out empty strings
+  const userTags = userTagsRaw
+    .split(",")
+    .map(tag => tag.trim())
+    .filter(tag => tag.length > 0);
+
+  // Combine default and user tags, avoiding duplicates (case-insensitive)
+  const combinedTags = [
+    ...defaultTags,
+    ...userTags.filter(
+      ut => !defaultTags.some(dt => dt.toLowerCase() === ut.toLowerCase())
+    ),
+  ];
+
+  // Build regex pattern to match tags with optional brackets and colon, case-insensitive
+  const pattern = combinedTags
     .map(tag => `(?:\\[\\s*${tag}\\s*\\]|${tag})\\s*:?\s*`)
     .join("|");
+
   const regex = new RegExp(`(?:${pattern})`, "gi");
 
   return subject.replace(regex, "").trim();
 }
+
 
 function collapsePrefixes(subject) {
   // Find matching prefixes at the start of the subject
@@ -64,20 +81,19 @@ function collapsePrefixes(subject) {
   return `${prefixStr} ${rest}`.trim();
 }
 
+
 function overwritePrefixes(subject) {
-  // Normalize spacing
   subject = subject.trim();
 
-  // Match if subject starts with "Fwd:" (case-insensitive)
-  let fwdMatch = subject.match(/^(Fwd:\s*)/i);
+  // Try to find the first prefix "Re:" or "Fwd:" at the start (case-insensitive)
   let prefixToKeep = "";
-
-  if (fwdMatch) {
-    prefixToKeep = fwdMatch[1]; // Keep this first Fwd: prefix with trailing space
+  const firstPrefixMatch = subject.match(/^(Re:|Fwd:)\s*/i);
+  if (firstPrefixMatch) {
+    prefixToKeep = firstPrefixMatch[0]; // Keep the entire matched prefix with trailing space
     subject = subject.slice(prefixToKeep.length);
   }
 
-  // Define prefixes to remove (case-insensitive)
+  // Prefixes to remove repeatedly from the start (including [EXT], [Extern], Re:, Fwd:)
   const prefixes = [
     /^\[EXT\]\s*/i,
     /^\[Extern\]\s*/i,
@@ -97,21 +113,41 @@ function overwritePrefixes(subject) {
     }
   }
 
-  // Rebuild subject with kept prefix if any
+  // Return rebuilt subject with the kept prefix + trimmed remainder
   return prefixToKeep + subject.trim();
 }
+
+
 
 async function cleanSubjectOnCompose(tab) {
   try {
     const composeDetails = await browser.compose.getComposeDetails(tab.id);
 
-    // Step 1: Remove tags like [EXT]
-    let subject = await cleanExtTags(composeDetails.subject);
+    const settings = await browser.storage.local.get([
+      'removeExtTag',
+      'tags',
+      'removePrefix',
+      'prefixOptions'
+    ]);
+    
+    let subject = composeDetails.subject;
 
-    // Step 2: Collapse prefixes properly from start
-    subject = await collapsePrefixes(subject);
+    // Step 1: Remove EXT tags if enabled
+    if (settings.removeExtTag) {
+      subject = await cleanExtTags(subject);
+    }
 
-    // Update if changed
+    // Step 2A: Collapse prefixes if enabled
+    if (settings.removePrefix && settings.prefixOptions === "collapse") {
+      subject = collapsePrefixes(subject);
+    }
+
+    // Step 2B: Overwrite prefixes if enabled
+    if (settings.removePrefix && settings.prefixOptions === "overwrite") {
+      subject = overwritePrefixes(subject);
+    }
+
+    // Only update if subject changed
     if (subject !== composeDetails.subject) {
       await browser.compose.setComposeDetails(tab.id, { subject });
     }
@@ -119,6 +155,7 @@ async function cleanSubjectOnCompose(tab) {
     console.error("Error cleaning subject:", error);
   }
 }
+
 
 // Execute the function before the email is sent
 browser.compose.onBeforeSend.addListener(cleanSubjectOnCompose);
