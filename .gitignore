@@ -1,3 +1,5 @@
 *.code-workspace
 *.zip
+*.afphoto
+*.afphoto~lock~
 .DS_Store
