@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
   "name": "TidySubject",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Declutter Re: Fwd: and EXT Tags.",
   "author": "Alan J. Yu",
-  "permissions": ["storage"],
+  "permissions": ["compose", "storage"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "scripts": ["background.js"]
