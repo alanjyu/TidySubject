@@ -1,12 +1,29 @@
 body {
   font-family: Arial, sans-serif;
-  margin: 20px;
 }
 
-label {
+.option {
+  margin: 15px 0;
+}
+
+.bold {
   font-weight: bold;
 }
 
-.option-group {
-  margin: 15px 0;
+#tagInputGroup, #prefixOptions {
+  margin: 10px 25px;
+}
+
+#collapsePrefix, #overwritePrefix {
+  margin: 5px 0;
+}
+
+.example-box {
+  margin: 6px 0 12px 24px;
+  padding: 6px 10px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  color: #555;
+  font-size: 0.8em;
+  user-select: none;
 }
