@@ -1,6 +1,6 @@
 # TidySubject for Thunderbird
 
-**TidySubject** is a lightweight [Thunderbird](https://www.thunderbird.net/) extension that automatically cleans up cluttered email subject lines when sending messages. It removes outdated external tags like `[EXT]`, `[Extern]`, and collapses repetitive prefixes such as `Re:`, `Fwd:`, resulting in cleaner, more readable subject lines.
+A lightweight [Thunderbird](https://www.thunderbird.net/) extension that automatically removes outdated external tags like `[EXT]`, `[Extern]`, and collapses repetitive prefixes such as `Re:`, `Fwd:`.
 
 
 ## Installation
