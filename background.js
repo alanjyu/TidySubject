@@ -48,56 +48,53 @@ async function cleanExtTags(subject) {
 
 
 function collapsePrefixes(subject) {
-  // Find matching prefixes at the start of the subject
-  const prefixRegex = /(Re|Aw|Antw|Fwd|WG)\s*:/gi;
+  subject = subject.trim();
+
+  // Normalize mapping
   const normalize = {
     re: "Re",
     aw: "Re",
     antw: "Re",
     fwd: "Fwd",
-    wg: "Fwd",
+    wg: "Fwd"
   };
 
-  let prefixes = [];
+  const prefixPattern = /^(Re|Aw|Antw|Fwd|WG)(\*([0-9]+))?:\s*/i;
+  const prefixes = [];
   let rest = subject;
 
-  // Extract prefixes from the start repeatedly
+  // Extract prefixes in order
   while (true) {
-    const match = rest.match(/^(Re|Aw|Antw|Fwd|WG)\s*:/i);
+    const match = rest.match(prefixPattern);
     if (!match) break;
-    prefixes.push(match[1].toLowerCase());
+
+    const raw = match[1].toLowerCase();
+    const norm = normalize[raw] || raw;
+    const count = match[3] ? parseInt(match[3], 10) : 1;
+
+    prefixes.push({ type: norm, count });
     rest = rest.slice(match[0].length).trimStart();
   }
 
-  if (prefixes.length === 0) {
-    return subject; // no prefixes found
-  }
+  if (prefixes.length === 0) return subject;
 
-  // Group consecutive prefixes by type
+  // Collapse consecutive same-type prefixes
   const collapsed = [];
-  let prev = null;
-  let count = 0;
-
-  for (const prefix of prefixes) {
-    if (prefix === prev) {
-      count++;
+  for (const { type, count } of prefixes) {
+    const last = collapsed[collapsed.length - 1];
+    if (last && last.type === type) {
+      last.count += count;
     } else {
-      if (prev !== null) collapsed.push({ prefix: prev, count });
-      prev = prefix;
-      count = 1;
+      collapsed.push({ type, count });
     }
   }
-  if (prev !== null) collapsed.push({ prefix: prev, count });
 
-  // Build collapsed prefix string
-  const prefixStr = collapsed
-    .map(({ prefix, count }) => {
-      const norm = normalize[prefix] || prefix;
-      return count > 1 ? `${norm}*${count}:` : `${norm}:`;
-    })
-    .join(" ");
+  // Rebuild subject
+  const prefixString = collapsed.map(({ type, count }) =>
+    count > 1 ? `${type}*${count}:` : `${type}:`
+  ).join(" ");
 
-  return `${prefixStr} ${rest}`.trim();
+  return `${prefixString} ${rest}`.trim();
 }
 
 
