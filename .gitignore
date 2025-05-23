@@ -1,4 +1,3 @@
 *.code-workspace
+*.zip
 .DS_Store
-.parcel-cache
-node_modules

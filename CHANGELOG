@@ -1,0 +1,4 @@
+## v0.2.0 [22.05.25]
+
+- Implemented removal of extern tags (e.g., EXT, EXTERN, EXTERNAL)
+- Implemented collapse of prefixes (e.g., Re, Fwd, Aw, etc.)
