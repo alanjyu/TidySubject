@@ -21,13 +21,13 @@ document.addEventListener('DOMContentLoaded', () => {
     'prefixOptions'
   ]).then((result) => {
     // Initialize Remove EXT Tags checkbox and tags input
-    removeExtTag.checked = result.removeExtTag || true;
+    removeExtTag.checked = result.removeExtTag ?? true;
 
     // If user has saved tags, show them; else start with default tags
     tagsInput.value = result.tags && result.tags.trim().length > 0 ? result.tags : defaultTags;
 
     // Initialize Remove Prefix checkbox
-    removePrefix.checked = result.collapsePrefix || true;
+    removePrefix.checked = result.removePrefix ?? true;
 
     // Show/hide prefix options based on removePrefix
     prefixOptions.style.display = removePrefix.checked ? 'block' : 'none';

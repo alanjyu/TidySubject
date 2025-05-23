@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
   "name": "TidySubject",
-  "version": "0.3.1",
-  "description": "Clean up your email subject automatically. Declutter Re: Fwd: and EXT Tags.",
+  "version": "0.3.2",
+  "description": "Declutter Re: Fwd: and EXT Tags.",
   "author": "Alan J. Yu",
-  "permissions": ["compose", "storage"],
+  "permissions": ["storage"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "scripts": ["background.js"]
@@ -14,7 +14,7 @@
     "open_in_tab": false
   },
   "action": {
-    "default_title": "Tidy Email Subject"
+    "default_title": "TidySubject"
   },
   "browser_specific_settings": {
     "gecko": {

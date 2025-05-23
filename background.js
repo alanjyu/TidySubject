@@ -1,15 +1,21 @@
 browser.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === "install") {
-    // Set default settings
+    const existing = await browser.storage.local.get([
+      'removeExtTag',
+      'tags',
+      'removePrefix',
+      'prefixOptions'
+    ]);
+
+    // Only set defaults if they haven't been saved before
     await browser.storage.local.set({
-      removeExtTag: true,
-      tags: "EXT, Extern, External",
-      removePrefix: true,
-      prefixOptions: "collapse"
+      removeExtTag: existing.removeExtTag ?? true,
+      tags: existing.tags ?? "EXT, Extern, External",
+      removePrefix: existing.removePrefix ?? true,
+      prefixOptions: existing.prefixOptions ?? "collapse"
     });
   }
 });
-
 
 async function cleanExtTags(subject) {
   const defaultTags = ["EXT", "Extern", "External"]; // default tags with preferred casing
@@ -100,6 +106,8 @@ function overwritePrefixes(subject) {
 
   // Try to find the first prefix "Re:" or "Fwd:" at the start (case-insensitive)
   let prefixToKeep = "";
+
+  // Check for "Re:" or "Fwd:" at the start of the subject
   const firstPrefixMatch = subject.match(/^(Re:|Fwd:)\s*/i);
   if (firstPrefixMatch) {
     prefixToKeep = firstPrefixMatch[0]; // Keep the entire matched prefix with trailing space
@@ -134,29 +142,35 @@ function overwritePrefixes(subject) {
 
 async function cleanSubjectOnCompose(tab) {
   try {
-    const composeDetails = await browser.compose.getComposeDetails(tab.id);
+    let composeDetails = await browser.compose.getComposeDetails(tab.id);
 
-    const settings = await browser.storage.local.get([
+    let settings = await browser.storage.local.get([
       'removeExtTag',
       'tags',
       'removePrefix',
       'prefixOptions'
     ]);
     
+    // Fallback to default settings if not set
+    let removeExtTag = settings.removeExtTag ?? true;
+    let removePrefix = settings.removePrefix ?? true;
+    let prefixOptions = settings.prefixOptions ?? "collapse";
+
+    // Get the subject from compose details
     let subject = composeDetails.subject;
 
     // Step 1: Remove EXT tags if enabled
-    if (settings.removeExtTag) {
+    if (removeExtTag) {
       subject = await cleanExtTags(subject);
     }
 
     // Step 2A: Collapse prefixes if enabled
-    if (settings.removePrefix && settings.prefixOptions === "collapse") {
+    if (removePrefix && prefixOptions === "collapse") {
       subject = collapsePrefixes(subject);
     }
 
     // Step 2B: Overwrite prefixes if enabled
-    if (settings.removePrefix && settings.prefixOptions === "overwrite") {
+    if (removePrefix && prefixOptions === "overwrite") {
       subject = overwritePrefixes(subject);
     }
 
