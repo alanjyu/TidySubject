@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TidySubject",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Declutter Re: Fwd: and EXT tags automatically.",
   "author": "Alan J. Yu",
   "permissions": ["compose", "storage"],

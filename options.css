@@ -1,29 +1,42 @@
 body {
+  box-sizing: border-box;
   font-family: Arial, sans-serif;
 }
 
 .option {
-  margin: 15px 0;
+  width: 250px;
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
 }
 
-.bold {
+.title {
   font-weight: bold;
+  margin: 0 0 8px 0;
 }
 
-#tagInputGroup, #prefixOptions {
-  margin: 10px 25px;
+.label {
+  font-size: .9em;
 }
 
-#collapsePrefix, #overwritePrefix {
-  margin: 5px 0;
+.textinput {
+  width: 100%;
+  margin: 0 0 8px 0;
+  font-size: .8em;
+  padding: 4px;
 }
 
-.example-box {
-  margin: 6px 0 12px 24px;
-  padding: 6px 10px;
+.example {
+  width: 100%;
+  margin: 4px;
+  padding: 6px;
+  font-size: .8em;
   background-color: #f0f0f0;
-  border-radius: 8px;
-  color: #555;
-  font-size: 0.8em;
-  user-select: none;
+  color: #666;
+  border-radius: 5px;
+}
+
+#status {
+  font-size: .8em;
+  color: #388b00;
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>TidySubject - Settings</title>
@@ -7,45 +8,50 @@
 </head>
 
 <body>
-  <form id="tagForm">
-    <div class="option">
+  <div class="option">
+    <div class="title">
       <label>
         <input type="checkbox" id="removeExtTag" name="removeExtTag" checked>
-        <span class="bold">Tidy EXT tags</span>
+        <span>Tidy Ext tags</span>
       </label>
     </div>
 
-    <div class="option" id="tagInputGroup">
-      <label for="tags">Tags to remove (comma-separated):</label><br>
-      <input type="text" id="tags" size="30" placeholder="EXT, Extern, External...">
-      <button id="saveTags" type="button">Save</button>
-      <p id="status" style="color: green;"></p>
+    <div id="tagInputGroup">
+      <input type="text" class="textinput" id="tags" placeholder="Ext, Extern, External...">
     </div>
+  </div>
 
-    <div class="option">
+  <div class="option">
+    <div class="title">
       <label>
         <input type="checkbox" id="removePrefix" name="removePrefix" checked>
-        <span class="bold">Tidy Re/Fwd prefixes</span>
+        <span>Tidy Re/Fwd prefixes</span>
       </label>
     </div>
 
-    <div class="option" id="prefixOptions">
-      <label>
+    <div id="prefixOptions">
+      <input type="text" class="textinput" id="reAliases" placeholder="Re, Aw, Antw">
+      <input type="text" class="textinput" id="fwdAliases" placeholder="Fwd, WG">
+
+      <label class="label">
         <input type="radio" id="collapsePrefix" name="prefixOption" value="collapse" checked>
-        Collapse repeated prefixes
+        Collapse
       </label>
-      <div class="example-box">
-        Fwd: Re: Re: Re: &rarr; Fwd: Re*3:
+      <div class="example">
+        Fwd: Re: Aw: Re: &rarr; Fwd: Re*3:
       </div>
-      <label>
+
+      <label class="label">
         <input type="radio" id="overwritePrefix" name="prefixOption" value="overwrite">
-        Overwrite prefixes
+        Overwrite
       </label>
-      <div class="example-box">
-        Fwd: Re: Re: Re: &rarr; Fwd:
+      <div class="example">
+        Fwd: Re: Aw: Re: &rarr; Fwd:
       </div>
+
+      <p id="status"></p>
     </div>
-  </form>
+  </div>
 
   <script src="options.js"></script>
 </body>

@@ -4,39 +4,51 @@ browser.runtime.onInstalled.addListener(async (details) => {
       'removeExtTag',
       'tags',
       'removePrefix',
-      'prefixOptions'
+      'prefixOptions',
+      'reAliases',
+      'fwdAliases'
     ]);
 
-    // Only set defaults if they haven't been saved before
+    // Set defaults if they haven't been saved before
     await browser.storage.local.set({
       removeExtTag: existing.removeExtTag ?? true,
       tags: existing.tags ?? "EXT, Extern, External",
       removePrefix: existing.removePrefix ?? true,
-      prefixOptions: existing.prefixOptions ?? "collapse"
+      prefixOptions: existing.prefixOptions ?? "collapse",
+      reAliases: existing.reAliases ?? "Re, Aw, Antw",
+      fwdAliases: existing.fwdAliases ?? "Fwd, WG"
     });
   }
 });
 
+async function getAliases() {
+  const { reAliases, fwdAliases } = await browser.storage.local.get(['reAliases', 'fwdAliases']);
+  const reList = (reAliases || "Re, Aw, Antw")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+  const fwdList = (fwdAliases || "Fwd, WG")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+  return { reList, fwdList };
+}
 
 async function cleanExtTags(subject) {
-  const defaultTags = ["EXT", "Extern", "External"];
-  const result = await browser.storage.local.get("tags");
-  const userTagsRaw = result.tags || "";
+  const storedTags = await browser.storage.local.get("tags");
+  const userTagsRaw = storedTags.tags || "";
 
   const userTags = userTagsRaw
     .split(",")
     .map(tag => tag.trim())
     .filter(tag => tag.length > 0);
 
-  const combinedTags = [
-    ...defaultTags,
-    ...userTags.filter(
-      ut => !defaultTags.some(dt => dt.toLowerCase() === ut.toLowerCase())
-    ),
-  ];
+  if (userTags.length === 0) {
+    // If no tags configured, just return subject as-is
+    return subject;
+  }
 
-  // Build a regex to match tags like [EXT], EXT:, or EXT (not attached to a word)
-  const pattern = combinedTags
+  const pattern = userTags
     .map(tag => `(?:\\[\\s*${tag}\\s*\\]|\\b${tag}\\b)\\s*:?\s*`)
     .join("|");
 
@@ -45,20 +57,17 @@ async function cleanExtTags(subject) {
   return subject.replace(regex, "").trim();
 }
 
-
-function collapsePrefixes(subject) {
+async function collapsePrefixes(subject) {
   subject = subject.trim();
+  const { reList, fwdList } = await getAliases();
 
   // Normalize mapping
-  const normalize = {
-    re: "Re",
-    aw: "Re",
-    antw: "Re",
-    fwd: "Fwd",
-    wg: "Fwd"
-  };
+  const normalize = {};
+  reList.forEach(alias => normalize[alias.toLowerCase()] = "Re");
+  fwdList.forEach(alias => normalize[alias.toLowerCase()] = "Fwd");
 
-  const prefixPattern = /^(Re|Aw|Antw|Fwd|WG)(\*([0-9]+))?:\s*/i;
+  const allAliases = [...reList, ...fwdList].map(a => a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const prefixPattern = new RegExp(`^(${allAliases.join("|")})(\\*([0-9]+))?:\\s*`, "i");
   const prefixes = [];
   let rest = subject;
 
@@ -96,33 +105,29 @@ function collapsePrefixes(subject) {
   return `${prefixString} ${rest}`.trim();
 }
 
-
-function overwritePrefixes(subject) {
+async function overwritePrefixes(subject) {
   subject = subject.trim();
+  const { reList, fwdList } = await getAliases();
 
-  // Try to find the first prefix "Re:" or "Fwd:" at the start (case-insensitive)
+  // Build regex for first prefix to keep
+  const keepPattern = new RegExp(`^(${[...reList, ...fwdList].map(a => a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join("|")}):\\s*`, "i");
   let prefixToKeep = "";
 
-  // Check for "Re:" or "Fwd:" at the start of the subject
-  const firstPrefixMatch = subject.match(/^(Re:|Fwd:)\s*/i);
+  const firstPrefixMatch = subject.match(keepPattern);
   if (firstPrefixMatch) {
-    prefixToKeep = firstPrefixMatch[0]; // Keep the entire matched prefix with trailing space
+    prefixToKeep = firstPrefixMatch[0];
     subject = subject.slice(prefixToKeep.length);
   }
 
-  // Prefixes to remove repeatedly from the start (including [EXT], [Extern], Re:, Fwd:)
-  const prefixes = [
-    /^\[EXT\]\s*/i,
-    /^\[Extern\]\s*/i,
-    /^Re:\s*/i,
-    /^Fwd:\s*/i,
-  ];
+  // Remove all user-defined prefixes repeatedly from the start
+  const allPatterns = [...reList, ...fwdList].map(alias =>
+    new RegExp(`^${alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:\\s*`, "i")
+  );
 
-  // Remove all these prefixes repeatedly from the start
   let prefixFound = true;
   while (prefixFound) {
     prefixFound = false;
-    for (const prefixRegex of prefixes) {
+    for (const prefixRegex of allPatterns) {
       if (prefixRegex.test(subject)) {
         subject = subject.replace(prefixRegex, "");
         prefixFound = true;
@@ -130,11 +135,8 @@ function overwritePrefixes(subject) {
     }
   }
 
-  // Return rebuilt subject with the kept prefix + trimmed remainder
   return prefixToKeep + subject.trim();
 }
-
-
 
 async function cleanSubjectOnCompose(tab) {
   try {
@@ -162,12 +164,12 @@ async function cleanSubjectOnCompose(tab) {
 
     // Step 2A: Collapse prefixes if enabled
     if (removePrefix && prefixOptions === "collapse") {
-      subject = collapsePrefixes(subject);
+      subject = await collapsePrefixes(subject);
     }
 
     // Step 2B: Overwrite prefixes if enabled
     if (removePrefix && prefixOptions === "overwrite") {
-      subject = overwritePrefixes(subject);
+      subject = await overwritePrefixes(subject);
     }
 
     // Only update if subject changed
@@ -188,11 +190,10 @@ browser.windows.onCreated.addListener(async (window) => {
       if (tab.type === "messageCompose") {
         setTimeout(async () => {
           await cleanSubjectOnCompose(tab);
-        }, 250); // Delay to ensure compose window is fully loaded
+        }, 100); // Delay to ensure compose window is fully loaded
       }
     }
   } catch (err) {
     console.error("Error handling compose window:", err);
   }
 });
-
