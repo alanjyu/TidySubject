@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "TidySubject",
-  "version": "0.3.4",
-  "description": "Declutter Re: Fwd: and EXT Tags.",
+  "version": "0.4.0",
+  "description": "Declutter Re: Fwd: and EXT tags automatically.",
   "author": "Alan J. Yu",
   "permissions": ["compose", "storage"],
   "host_permissions": ["<all_urls>"],
@@ -14,7 +14,9 @@
     "open_in_tab": false
   },
   "action": {
-    "default_title": "TidySubject"
+    "default_title": "TidySubject",
+    "default_icon": "icon.png",
+    "default_popup": "options.html"
   },
   "browser_specific_settings": {
     "gecko": {

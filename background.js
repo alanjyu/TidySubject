@@ -17,18 +17,17 @@ browser.runtime.onInstalled.addListener(async (details) => {
   }
 });
 
+
 async function cleanExtTags(subject) {
-  const defaultTags = ["EXT", "Extern", "External"]; // default tags with preferred casing
+  const defaultTags = ["EXT", "Extern", "External"];
   const result = await browser.storage.local.get("tags");
   const userTagsRaw = result.tags || "";
 
-  // Parse user tags from comma-separated string, trim whitespace, filter out empty strings
   const userTags = userTagsRaw
     .split(",")
     .map(tag => tag.trim())
     .filter(tag => tag.length > 0);
 
-  // Combine default and user tags, avoiding duplicates (case-insensitive)
   const combinedTags = [
     ...defaultTags,
     ...userTags.filter(
@@ -36,9 +35,9 @@ async function cleanExtTags(subject) {
     ),
   ];
 
-  // Build regex pattern to match tags with optional brackets and colon, case-insensitive
+  // Build a regex to match tags like [EXT], EXT:, or EXT (not attached to a word)
   const pattern = combinedTags
-    .map(tag => `(?:\\[\\s*${tag}\\s*\\]|${tag})\\s*:?\s*`)
+    .map(tag => `(?:\\[\\s*${tag}\\s*\\]|\\b${tag}\\b)\\s*:?\s*`)
     .join("|");
 
   const regex = new RegExp(`(?:${pattern})`, "gi");
@@ -180,6 +179,20 @@ async function cleanSubjectOnCompose(tab) {
   }
 }
 
+browser.windows.onCreated.addListener(async (window) => {
+  try {
+    const tabs = await browser.tabs.query({ windowId: window.id });
 
-// Execute the function before the email is sent
-browser.compose.onBeforeSend.addListener(cleanSubjectOnCompose);
+    for (const tab of tabs) {
+      // Only handle tabs of type 'messageCompose'
+      if (tab.type === "messageCompose") {
+        setTimeout(async () => {
+          await cleanSubjectOnCompose(tab);
+        }, 250); // Delay to ensure compose window is fully loaded
+      }
+    }
+  } catch (err) {
+    console.error("Error handling compose window:", err);
+  }
+});
+

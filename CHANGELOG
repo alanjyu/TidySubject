@@ -1,8 +1,12 @@
-## 0.3.0 [23.05.25]
+## 0.4.0 [2025-05-28]
+- Fixed edge cases where "ext" appears as part of a word (e.g., *next* is no longer affected)
+- Subject cleanup now occurs when composing (e.g., on reply/forward), not when sending
+- Added an action popup menu accessible from the toolbar
+- Prefix counters are now incremented correctly when collapsing (e.g., Re: Re\*3: $\rightarrow$ Re\*4:)
 
-- Added user options and tags with a Settings page
+## 0.3.0 [2025-05-23]
+- Added a settings page with user-configurable options and custom tag input
 
-## 0.2.0 [22.05.25]
-
-- Implemented removal of EXT tags (e.g., EXT, EXTERN, EXTERNAL)
-- Implemented collapsing of prefixes (e.g., Re, Fwd, Aw, etc.)
+## 0.2.0 [2025-05-22]
+- Added support for removing outdated "extern" tags (e.g., [EXT], EXTERN, EXTERNAL)
+- Added collapsing of common prefixes chronologically (e.g., Re, Fwd, Aw, Antw $\rightarrow$ Re: Fwd: Re\*2)
