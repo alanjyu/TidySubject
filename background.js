@@ -1,5 +1,5 @@
 const DEFAULT_TAGS = "EXT, Extern, External";
-const DEFAULT_PREFIX_OPTIONS = "collapse";
+const DEFAULT_PREFIX_OPTIONS = "overwrite";
 const DEFAULT_RE_ALIASES = "Re, Aw, Antw";
 const DEFAULT_FWD_ALIASES = "Fw, Fwd, WG";
 const DEFAULT_RE_SUBSTITUTE = "Re";
