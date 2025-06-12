@@ -1,3 +1,10 @@
+## 0.6.0 [2025-06-12]
+- Changed default prefix option to "overwrite"
+- Added user-configurable prefix substitutes
+- Added reset buttons for all input fields
+- Redesigned Settings UI
+- Improved robustness of subject cleanup logic (handles tags and prefixes more reliably)
+
 ## 0.5.0 [2025-05-28]
 - Added user-configurable prefixes
 

@@ -1,22 +1,33 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const defaultTags = "Ext, Extern, External";
-  const defaultReAliases = "Re, Aw, Antw";
-  const defaultFwdAliases = "Fwd, WG";
+const DEFAULT_RE_ALIASES = "Re, Aw, Antw";
+const DEFAULT_FWD_ALIASES = "Fw, Fwd, WG";
+const DEFAULT_RE_SUBSTITUTE = "Re";
+const DEFAULT_FWD_SUBSTITUTE = "Fwd";
+const DEFAULT_TAGS = "EXT, Extern, External";
 
+document.addEventListener('DOMContentLoaded', () => {
   const debounceDelay = 500;
   const statusDelay = 2000;
 
   const removeExtTag = document.getElementById('removeExtTag');
   const tagInputGroup = document.getElementById('tagInputGroup');
-  const tagsInput = document.getElementById('tags');
+  const tagInput = document.getElementById('tagInput');
 
   const removePrefix = document.getElementById('removePrefix');
   const prefixOptions = document.getElementById('prefixOptions');
   const collapsePrefix = document.getElementById('collapsePrefix');
   const overwritePrefix = document.getElementById('overwritePrefix');
+  const prefixExample = document.getElementById("prefixExample");
 
   const reAliasesInput = document.getElementById('reAliases');
   const fwdAliasesInput = document.getElementById('fwdAliases');
+  const reSubstitutesInput = document.getElementById('reSubstitutes');
+  const fwdSubstitutesInput = document.getElementById('fwdSubstitutes');
+
+  const resetTagsButton = document.getElementById('resetTags');
+  const resetReAliasesButton = document.getElementById('resetReAliases');
+  const resetFwdAliasesButton = document.getElementById('resetFwdAliases');
+  const resetReSubstitutesButton = document.getElementById('resetReSubstitutes');
+  const resetFwdSubstitutesButton = document.getElementById('resetFwdSubstitutes');
 
   const status = document.getElementById('status');
 
@@ -26,10 +37,12 @@ document.addEventListener('DOMContentLoaded', () => {
     'removePrefix',
     'prefixOptions',
     'reAliases',
-    'fwdAliases'
+    'fwdAliases',
+    'reSubstitutes',
+    'fwdSubstitutes'
   ]).then((result) => {
     removeExtTag.checked = result.removeExtTag ?? true;
-    tagsInput.value = result.tags?.trim() || defaultTags;
+    tagInput.value = result.tags?.trim() || DEFAULT_TAGS;
 
     removePrefix.checked = result.removePrefix ?? true;
     prefixOptions.style.display = removePrefix.checked ? 'block' : 'none';
@@ -41,10 +54,12 @@ document.addEventListener('DOMContentLoaded', () => {
       overwritePrefix.checked = result.prefixOptions === "overwrite";
     }
 
-    reAliasesInput.value = result.reAliases?.trim() || defaultReAliases;
-    fwdAliasesInput.value = result.fwdAliases?.trim() || defaultFwdAliases;
+    reAliasesInput.value = result.reAliases?.trim() || DEFAULT_RE_ALIASES;
+    fwdAliasesInput.value = result.fwdAliases?.trim() || DEFAULT_FWD_ALIASES;
+    reSubstitutesInput.value = result.reSubstitutes?.trim() || DEFAULT_RE_SUBSTITUTE;
+    fwdSubstitutesInput.value = result.fwdSubstitutes?.trim() || DEFAULT_FWD_SUBSTITUTE;
 
-    tagInputGroup.style.display = removeExtTag.checked ? 'block' : 'none';
+    tagInputGroup.style.display = removeExtTag.checked ? 'flex' : 'none';
   });
 
   function debounce(callback, delay) {
@@ -55,40 +70,54 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  function flashSaved(input) {
+    input.classList.remove('input-saved'); // Restart animation if needed
+    void input.offsetWidth; // Force reflow
+    input.classList.add('input-saved');
+  }
+
   const debouncedSaveTags = debounce(() => {
     browser.storage.local.set({
-      tags: tagsInput.value
-    }).then(() => {
-      status.textContent = 'Tags saved.';
-      setTimeout(() => status.textContent = '', statusDelay);
+      tags: tagInput.value
     });
+    flashSaved(tagInput);
   }, debounceDelay);
 
   const debouncedSaveReAliases = debounce(() => {
     browser.storage.local.set({
-      reAliases: reAliases.value
-    }).then(() => {
-      status.textContent = 'Re aliases saved.';
-      setTimeout(() => status.textContent = '', statusDelay);
+      reAliases: reAliasesInput.value
     });
+    flashSaved(reAliasesInput);
   }, debounceDelay);
 
   const debouncedSaveFwdAliases = debounce(() => {
     browser.storage.local.set({
-      fwdAliases: fwdAliases.value
-    }).then(() => {
-      status.textContent = 'Fwd aliases saved.';
-      setTimeout(() => status.textContent = '', statusDelay);
+      fwdAliases: fwdAliasesInput.value
     });
+    flashSaved(fwdAliasesInput);
+  }, debounceDelay);
+
+  const debouncedSaveReSubstitutes = debounce(() => {
+    browser.storage.local.set({
+      reSubstitutes: reSubstitutesInput.value
+    });
+    flashSaved(reSubstitutesInput);
+  }, debounceDelay);
+
+  const debouncedSaveFwdSubstitutes = debounce(() => {
+    browser.storage.local.set({
+      fwdSubstitutes: fwdSubstitutesInput.value
+    });
+    flashSaved(fwdSubstitutesInput);
   }, debounceDelay);
 
   function toggleTagInput() {
-    tagInputGroup.style.display = removeExtTag.checked ? 'block' : 'none';
+    tagInputGroup.style.display = removeExtTag.checked ? 'flex' : 'none';
     saveStates();
   }
 
   function togglePrefixOptions() {
-    prefixOptions.style.display = removePrefix.checked ? 'block' : 'none';
+    prefixOptions.style.display = removePrefix.checked ? 'flex' : 'none';
     saveStates();
   }
 
@@ -100,12 +129,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function updateExampleText() {
+    if (overwritePrefix.checked) {
+      prefixExample.innerHTML = "Fwd: Re: Aw: Re: → Fwd:";
+    } else if (collapsePrefix.checked) {
+      prefixExample.innerHTML = "Fwd: Re: Aw: Re: → Fwd: Re*3:";
+    }
+  }
+
+  updateExampleText();
+
+  // Update on change
+  overwritePrefix.addEventListener("change", updateExampleText);
+  collapsePrefix.addEventListener("change", updateExampleText);
+
+  overwritePrefix.addEventListener('change', saveStates);
+  collapsePrefix.addEventListener('change', saveStates);
+
   removeExtTag.addEventListener('change', toggleTagInput);
   removePrefix.addEventListener('change', togglePrefixOptions);
-  collapsePrefix.addEventListener('change', saveStates);
-  overwritePrefix.addEventListener('change', saveStates);
 
-  tagsInput.addEventListener('input', debouncedSaveTags);
+  tagInput.addEventListener('input', debouncedSaveTags);
   reAliasesInput.addEventListener('input', debouncedSaveReAliases);
   fwdAliasesInput.addEventListener('input', debouncedSaveFwdAliases);
+
+  reSubstitutesInput.addEventListener('input', debouncedSaveReSubstitutes);
+  fwdSubstitutesInput.addEventListener('input', debouncedSaveFwdSubstitutes);
+
+  // Reset buttons
+  resetTagsButton.addEventListener('click', () => {
+    tagInput.value = DEFAULT_TAGS;
+    debouncedSaveTags();
+  });
+  resetReAliasesButton.addEventListener('click', () => {
+    reAliasesInput.value = DEFAULT_RE_ALIASES;
+    debouncedSaveReAliases();
+  });
+  resetFwdAliasesButton.addEventListener('click', () => {
+    fwdAliasesInput.value = DEFAULT_FWD_ALIASES;
+    debouncedSaveFwdAliases();
+  });
+  resetReSubstitutesButton.addEventListener('click', () => {
+    reSubstitutesInput.value = DEFAULT_RE_SUBSTITUTE;
+    debouncedSaveReSubstitutes();
+  });
+  resetFwdSubstitutesButton.addEventListener('click', () => {
+    fwdSubstitutesInput.value = DEFAULT_FWD_SUBSTITUTE;
+    debouncedSaveFwdSubstitutes();
+  });
 });

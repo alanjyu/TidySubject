@@ -1,3 +1,10 @@
+const DEFAULT_TAGS = "EXT, Extern, External";
+const DEFAULT_PREFIX_OPTIONS = "collapse";
+const DEFAULT_RE_ALIASES = "Re, Aw, Antw";
+const DEFAULT_FWD_ALIASES = "Fw, Fwd, WG";
+const DEFAULT_RE_SUBSTITUTE = "Re";
+const DEFAULT_FWD_SUBSTITUTE = "Fwd";
+
 browser.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === "install") {
     const existing = await browser.storage.local.get([
@@ -6,32 +13,56 @@ browser.runtime.onInstalled.addListener(async (details) => {
       'removePrefix',
       'prefixOptions',
       'reAliases',
-      'fwdAliases'
+      'fwdAliases',
+      'reSubstitutes',
+      'fwdSubstitutes'
     ]);
 
     // Set defaults if they haven't been saved before
     await browser.storage.local.set({
       removeExtTag: existing.removeExtTag ?? true,
-      tags: existing.tags ?? "EXT, Extern, External",
+      tags: existing.tags ?? DEFAULT_TAGS,
       removePrefix: existing.removePrefix ?? true,
-      prefixOptions: existing.prefixOptions ?? "collapse",
-      reAliases: existing.reAliases ?? "Re, Aw, Antw",
-      fwdAliases: existing.fwdAliases ?? "Fwd, WG"
+      prefixOptions: existing.prefixOptions ?? DEFAULT_PREFIX_OPTIONS,
+      reAliases: existing.reAliases ?? DEFAULT_RE_ALIASES,
+      fwdAliases: existing.fwdAliases ?? DEFAULT_FWD_ALIASES,
+      reSubstitutes: existing.reSubstitutes ?? DEFAULT_RE_SUBSTITUTE,
+      fwdSubstitutes: existing.fwdSubstitutes ?? DEFAULT_FWD_SUBSTITUTE
     });
   }
 });
 
-async function getAliases() {
-  const { reAliases, fwdAliases } = await browser.storage.local.get(['reAliases', 'fwdAliases']);
-  const reList = (reAliases || "Re, Aw, Antw")
+function getTags(subject, userTags) {
+  if (!userTags.length) return { tags: '', rest: subject };
+  const tagPattern = `\\[\\s*(?:${userTags.map(tag => tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join("|")})\\s*\\]\\s*:?\s*`;
+  const regex = new RegExp(tagPattern, "gi");
+  let tags = '';
+  let match;
+  // Collect all tags
+  while ((match = regex.exec(subject)) !== null) {
+    tags += match[0].trim() + ' ';
+  }
+  // Remove all tags from subject
+  const rest = subject.replace(regex, '').trim();
+  return { tags: tags.trim(), rest };
+}
+
+async function getPrefixes () {
+  const { reAliases, fwdAliases, reSubstitutes, fwdSubstitutes } = await browser.storage.local.get([
+    'reAliases', 'fwdAliases', 'reSubstitutes', 'fwdSubstitutes'
+  ]);
+  const reList = (reAliases || DEFAULT_RE_ALIASES)
     .split(",")
     .map(s => s.trim())
     .filter(Boolean);
-  const fwdList = (fwdAliases || "Fwd, WG")
+  const fwdList = (fwdAliases || DEFAULT_FWD_ALIASES)
     .split(",")
     .map(s => s.trim())
     .filter(Boolean);
-  return { reList, fwdList };
+  const reSub = (reSubstitutes || DEFAULT_RE_SUBSTITUTE).trim();
+  const fwdSub = (fwdSubstitutes || DEFAULT_FWD_SUBSTITUTE).trim();
+
+  return { reList, fwdList, reSub, fwdSub };
 }
 
 async function cleanExtTags(subject) {
@@ -59,16 +90,15 @@ async function cleanExtTags(subject) {
 
 async function collapsePrefixes(subject) {
   subject = subject.trim();
-  const { reList, fwdList } = await getAliases();
+  const { reList, fwdList, reSub, fwdSub } = await getPrefixes();
 
   // Normalize mapping
   const normalize = {};
-  reList.forEach(alias => normalize[alias.toLowerCase()] = "Re");
-  fwdList.forEach(alias => normalize[alias.toLowerCase()] = "Fwd");
+  reList.forEach(alias => normalize[alias.toLowerCase()] = reSub);
+  fwdList.forEach(alias => normalize[alias.toLowerCase()] = fwdSub);
 
   const allAliases = [...reList, ...fwdList].map(a => a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const prefixPattern = new RegExp(`^(${allAliases.join("|")})(\\*([0-9]+))?:\\s*`, "i");
-  const prefixes = [];
+const prefixPattern = new RegExp(`(${allAliases.join("|")})(\\*([0-9]+))?:\\s*`, "gi");  const prefixes = [];
   let rest = subject;
 
   // Extract prefixes in order
@@ -107,16 +137,25 @@ async function collapsePrefixes(subject) {
 
 async function overwritePrefixes(subject) {
   subject = subject.trim();
-  const { reList, fwdList } = await getAliases();
+  const { reList, fwdList, reSub, fwdSub } = await getPrefixes();
 
   // Build regex for first prefix to keep
   const keepPattern = new RegExp(`^(${[...reList, ...fwdList].map(a => a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join("|")}):\\s*`, "i");
   let prefixToKeep = "";
+  let prefixNorm = "";
 
   const firstPrefixMatch = subject.match(keepPattern);
   if (firstPrefixMatch) {
-    prefixToKeep = firstPrefixMatch[0];
-    subject = subject.slice(prefixToKeep.length);
+    const raw = firstPrefixMatch[1].toLowerCase();
+    if (reList.map(a => a.toLowerCase()).includes(raw)) {
+      prefixNorm = reSub;
+    } else if (fwdList.map(a => a.toLowerCase()).includes(raw)) {
+      prefixNorm = fwdSub;
+    } else {
+      prefixNorm = firstPrefixMatch[1];
+    }
+    prefixToKeep = `${prefixNorm}: `;
+    subject = subject.slice(firstPrefixMatch[0].length);
   }
 
   // Remove all user-defined prefixes repeatedly from the start
@@ -149,28 +188,31 @@ async function cleanSubjectOnCompose(tab) {
       'prefixOptions'
     ]);
     
-    // Fallback to default settings if not set
     let removeExtTag = settings.removeExtTag ?? true;
     let removePrefix = settings.removePrefix ?? true;
-    let prefixOptions = settings.prefixOptions ?? "collapse";
+    let prefixOptions = settings.prefixOptions ?? DEFAULT_PREFIX_OPTIONS;
 
-    // Get the subject from compose details
     let subject = composeDetails.subject;
 
-    // Step 1: Remove EXT tags if enabled
+    // Always extract tags first
+    const userTags = (settings.tags || DEFAULT_TAGS).split(",").map(t => t.trim()).filter(Boolean);
+    let { tags, rest } = getTags(subject, userTags);
+
+    // Step 1: Remove EXT tags if enabled (skip adding tags back)
     if (removeExtTag) {
-      subject = await cleanExtTags(subject);
+      tags = '';
     }
 
-    // Step 2A: Collapse prefixes if enabled
+    // Step 2: Process prefixes on the rest of the subject
     if (removePrefix && prefixOptions === "collapse") {
-      subject = await collapsePrefixes(subject);
+      rest = await collapsePrefixes(rest);
+    }
+    if (removePrefix && prefixOptions === "overwrite") {
+      rest = await overwritePrefixes(rest);
     }
 
-    // Step 2B: Overwrite prefixes if enabled
-    if (removePrefix && prefixOptions === "overwrite") {
-      subject = await overwritePrefixes(subject);
-    }
+    // Rebuild subject: tags (if not removed) + cleaned rest
+    subject = (tags ? tags + ' ' : '') + rest;
 
     // Only update if subject changed
     if (subject !== composeDetails.subject) {
@@ -188,9 +230,7 @@ browser.windows.onCreated.addListener(async (window) => {
     for (const tab of tabs) {
       // Only handle tabs of type 'messageCompose'
       if (tab.type === "messageCompose") {
-        setTimeout(async () => {
-          await cleanSubjectOnCompose(tab);
-        }, 100); // Delay to ensure compose window is fully loaded
+        await cleanSubjectOnCompose(tab);
       }
     }
   } catch (err) {

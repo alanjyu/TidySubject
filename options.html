@@ -9,47 +9,69 @@
 
 <body>
   <div class="option">
-    <div class="title">
+    <div class="heading vspace">
       <label>
         <input type="checkbox" id="removeExtTag" name="removeExtTag" checked>
         <span>Tidy Ext tags</span>
       </label>
     </div>
 
-    <div id="tagInputGroup">
-      <input type="text" class="textinput" id="tags" placeholder="Ext, Extern, External...">
+    <div class="content">
+      <div class="row vspace" id="tagInputGroup">
+        <input type="text" id="tagInput" placeholder="Ext, Extern, External">
+        <button type="button" class="reset-btn" id="resetTags" title="Reset to default">⟳</button>
+      </div>
     </div>
   </div>
 
   <div class="option">
-    <div class="title">
+    <div class="heading vspace">
       <label>
         <input type="checkbox" id="removePrefix" name="removePrefix" checked>
         <span>Tidy Re/Fwd prefixes</span>
       </label>
     </div>
 
-    <div id="prefixOptions">
-      <input type="text" class="textinput" id="reAliases" placeholder="Re, Aw, Antw">
-      <input type="text" class="textinput" id="fwdAliases" placeholder="Fwd, WG">
-
-      <label class="label">
-        <input type="radio" id="collapsePrefix" name="prefixOption" value="collapse" checked>
-        Collapse
-      </label>
-      <div class="example">
-        Fwd: Re: Aw: Re: &rarr; Fwd: Re*3:
+    <div class="content" id="prefixOptions">
+      <div class="row vspace">
+        <label class="label">
+          <input type="radio" id="overwritePrefix" name="prefixOption" value="overwrite" checked>
+          Overwrite
+        </label>
+        <label class="label">
+          <input type="radio" id="collapsePrefix" name="prefixOption" value="collapse">
+          Collapse
+        </label>
       </div>
-
-      <label class="label">
-        <input type="radio" id="overwritePrefix" name="prefixOption" value="overwrite">
-        Overwrite
-      </label>
-      <div class="example">
+  
+      <div class="row vspace" id="prefixExample">
         Fwd: Re: Aw: Re: &rarr; Fwd:
       </div>
 
-      <p id="status"></p>
+      <div class="row vspace">
+        <input type="text" id="reAliases" placeholder="Re, Aw, Antw">
+        <button type="button" class="reset-btn" id="resetReAliases" title="Reset to default">⟳</button>
+      </div>
+
+      <div class="row vspace">
+        <svg class="downright" height="22px" width="22px" version="1.1" viewBox="0 0 32 32" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <path d="M6.003,4.017c-0.552,0-1,0.448-1,1v13.969c0,0.552,0.448,1,1,1h17.598  l-6.205,6.275c-0.391,0.394-0.391,1.033,0,1.427c0.391,0.394,1.024,0.394,1.414,0l7.899-7.988c0.394-0.398,0.378-1.071-0.026-1.453  l-7.873-7.962c-0.391-0.394-1.024-0.394-1.414,0c-0.391,0.394-0.391,1.033,0,1.427l6.188,6.257H7.003V5.017  C7.003,4.465,6.556,4.017,6.003,4.017z" fill="#121313" id="Subdirectory_Arrow_Right"/><g/><g/><g/><g/><g/><g/>
+        </svg>
+        <input type="text" id="reSubstitutes" placeholder="Re">
+        <button type="button" class="reset-btn" id="resetReSubstitutes" title="Reset to default">⟳</button> 
+      </div>
+
+      <div class="row vspace">
+        <input type="text" id="fwdAliases" placeholder="Fwd, WG">
+        <button type="button" class="reset-btn" id="resetFwdAliases" title="Reset to default">⟳</button>
+      </div>
+      <div class="row vspace">
+        <svg class="downright" height="22px" width="22px" version="1.1" viewBox="0 0 32 32" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <path d="M6.003,4.017c-0.552,0-1,0.448-1,1v13.969c0,0.552,0.448,1,1,1h17.598  l-6.205,6.275c-0.391,0.394-0.391,1.033,0,1.427c0.391,0.394,1.024,0.394,1.414,0l7.899-7.988c0.394-0.398,0.378-1.071-0.026-1.453  l-7.873-7.962c-0.391-0.394-1.024-0.394-1.414,0c-0.391,0.394-0.391,1.033,0,1.427l6.188,6.257H7.003V5.017  C7.003,4.465,6.556,4.017,6.003,4.017z" fill="#121313" id="Subdirectory_Arrow_Right"/><g/><g/><g/><g/><g/><g/>
+        </svg>
+        <input type="text" id="fwdSubstitutes" placeholder="Fwd">  
+        <button type="button" class="reset-btn" id="resetFwdSubstitutes" title="Reset to default">⟳</button> 
+      </div>
     </div>
   </div>
 
