@@ -6,25 +6,23 @@
 
 :root {
   --background-color: #fff;
-  --text-color: #333;
+  --text-color: #000;
   --shade-color: #e9e9e9;
   --shade-color-alpha: rgba(233, 233, 233, 0.3);
   --border-color: #5e5e5e;
+  --border-color-alpha: rgba(94, 94, 94, 0.3);
   --border-radius: 3px;
 }
 
-html[data-theme="light"] {
-  --background-color: #fff;
-  --text-color: #333;
-  --shade-color: #e9e9e9;
-  --shade-color-alpha: rgba(233, 233, 233, 0.3);
-  --border-color: #5e5e5e;
-}
-
-html[data-theme="dark"] {
-  --background-color: #333;
-  --text-color: #fff;
-  --shade-color: #555;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-color: #151515;
+    --text-color: #fff;
+    --shade-color: #2f2f31;
+    --shade-color-alpha: rgba(47, 47, 49, 0.3);
+    --border-color: #aaa;
+    --border-color-alpha: rgba(170, 170, 170, 0.3);
+  }
 }
 
 body {
@@ -41,10 +39,13 @@ body {
 
 @keyframes border-pulse {
   0% {
-    box-shadow: 0 0 0 0 var(--shade-color);
+    box-shadow: 0 0 0 0 var(--border-color);
+  }
+  85% {
+    box-shadow: 0 0 0 12px var(--border-color-alpha);
   }
   100% {
-    box-shadow: 0 0 0 16px var(--shade-color-alpha);
+    box-shadow: 0 0 0 0 var(--border-color);
   }
 }
 
@@ -53,7 +54,6 @@ body {
   max-width: 300px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   margin-bottom: 16px;
 }
 
@@ -68,17 +68,23 @@ body {
   margin: 0 25px;
 }
 
-#tagInput, #reAliases, #fwdAliases, #reSubstitutes, #fwdSubstitutes{
+#tagInput, #reAliases, #fwdAliases, #reSubstitutes, #fwdSubstitutes {
   width: 100%;
   padding: 8px 6px;
   font-size: .8em;
+  background: var(--shade-color);
+  color: var(--text-color);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+#tagInput:hover, #reAliases:hover, #fwdAliases:hover, #reSubstitutes:hover, #fwdSubstitutes:hover {
+  background: var(--border-color-alpha);
 }
 
 .input-saved {
-  animation: border-pulse .6s;
-  border-color: var(--shade-color) !important;
+  animation: border-pulse 0.4s ease;
 }
 
 #prefixExample {
@@ -102,12 +108,12 @@ body {
 }
 
 .reset-btn {
-  background: var(--background-color);
+  background: var(--shade-color);
   color: var(--text-color);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   text-align: center;
-  padding: 2px 8px;
+  padding: 4px 8px;
   font-size: 1em;
   overflow: hidden;
   cursor: pointer;
@@ -115,8 +121,7 @@ body {
 }
 
 .reset-btn:hover {
-  background: var(--text-color);
-  color: var(--background-color);
+  background: var(--border-color-alpha);
 }
 
 .label {
@@ -125,6 +130,11 @@ body {
 
 .downright {
   vertical-align: middle;
+  color: var(--text-color);
+}
+
+.downright path {
+  fill: currentColor;
 }
 
 .vspace {

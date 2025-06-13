@@ -6,7 +6,6 @@ const DEFAULT_TAGS = "EXT, Extern, External";
 
 document.addEventListener('DOMContentLoaded', () => {
   const debounceDelay = 500;
-  const statusDelay = 2000;
 
   const removeExtTag = document.getElementById('removeExtTag');
   const tagInputGroup = document.getElementById('tagInputGroup');
@@ -45,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tagInput.value = result.tags?.trim() || DEFAULT_TAGS;
 
     removePrefix.checked = result.removePrefix ?? true;
-    prefixOptions.style.display = removePrefix.checked ? 'block' : 'none';
+    prefixOptions.style.display = removePrefix.checked ? 'flex' : 'none';
 
     if (!result.prefixOptions || (result.prefixOptions !== "collapse" && result.prefixOptions !== "overwrite")) {
       collapsePrefix.checked = true;
