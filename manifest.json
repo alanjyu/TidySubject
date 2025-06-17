@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TidySubject",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "description": "Declutter Re:, Fwd:, and Ext tags automatically.",
   "author": "Alan J. Yu",
   "permissions": ["compose", "storage"],
@@ -15,7 +15,7 @@
   },
   "action": {
     "default_title": "Tidy",
-    "default_icon": "icon.png",
+    "default_icon": "icon.svg",
     "default_popup": "options.html"
   },
   "browser_specific_settings": {
