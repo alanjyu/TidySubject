@@ -1,6 +1,6 @@
 # TidySubject
 
-A lightweight [Thunderbird](https://www.thunderbird.net/) extension that automatically removes outdated external tags like [EXT], [Extern], and collapses repetitive prefixes like Re and Fwd. User-configurable.
+A [Thunderbird](https://www.thunderbird.net/) extension that automatically tidies up outdated external tags like [EXT], [Extern], and repetitive prefixes like Re and Fwd. Lightweight. User-configurable.
 
 e.g., **Fwd: Re: [EXT] Aw: [Extern] Re: [External]** $\rightarrow$ **Fwd:** (overwritten) or **Fwd: Re*3** (collapsed).
 
