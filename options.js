@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fwdSubstitutesInput.value = result.fwdSubstitutes?.trim() || DEFAULT_FWD_SUBSTITUTE;
 
     tagInputGroup.style.display = removeExtTag.checked ? 'flex' : 'none';
+    updateExampleText();
   });
 
   function debounce(callback, delay) {

@@ -98,7 +98,8 @@ async function collapsePrefixes(subject) {
   fwdList.forEach(alias => normalize[alias.toLowerCase()] = fwdSub);
 
   const allAliases = [...reList, ...fwdList].map(a => a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-const prefixPattern = new RegExp(`(${allAliases.join("|")})(\\*([0-9]+))?:\\s*`, "gi");  const prefixes = [];
+  const prefixPattern = new RegExp(`^(${allAliases.join("|")})(\\*([0-9]+))?:\\s*`, "i");
+  const prefixes = [];
   let rest = subject;
 
   // Extract prefixes in order

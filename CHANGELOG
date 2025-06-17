@@ -1,9 +1,14 @@
+## 0.7.0 [2025-06-17]
+- Added dark mode support and improved the Settings UI
+- Fixed edge cases in "collapse" mode
+- Improved prefix handling even when Ext tags are not tidied
+
 ## 0.6.0 [2025-06-12]
-- Changed default prefix option to "overwrite"
+- Changed the default prefix option to "overwrite"
 - Added user-configurable prefix substitutes
 - Added reset buttons for all input fields
 - Redesigned Settings UI
-- Improved robustness of subject cleanup logic (handles tags and prefixes more reliably)
+- Tags and prefixes are now handled more reliably
 
 ## 0.5.0 [2025-05-28]
 - Added user-configurable prefixes
