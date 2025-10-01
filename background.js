@@ -34,8 +34,9 @@ browser.runtime.onInstalled.addListener(async (details) => {
 
 function getTags(subject, userTags) {
   if (!userTags.length) return { tags: '', rest: subject };
-  const tagPattern = `\\[\\s*(?:${userTags.map(tag => tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join("|")})\\s*\\]\\s*:?\s*`;
+  const tagPattern = `\\[\\s*(?:${userTags.map(tag => tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join("|")})\\s*\\](?:\\s*:\\s*|\\s+)?`;
   const regex = new RegExp(tagPattern, "gi");
+  
   let tags = '';
   let match;
   // Collect all tags
